@@ -29,7 +29,7 @@ python ui_server.py
 ```
 
 This command also launches the API server. Then open
-[http://localhost:5000/](http://localhost:5000/) in your browser.
+http://`UI_Host`:`UI_PORT` in your browser.
 
 ### 2. Set the interval
 
@@ -44,10 +44,9 @@ The page now refreshes the displayed results every few seconds while the schedul
 
 Use **Stop Scheduler** at any time to cancel all checks. The API server shuts down automatically when the UI server exits.
 
-## Notes
+#### Notes
 
 - The UI server only displays results sent to it; it does not run health checks itself.
-- The application monitors login functionality.
 - Teams notifications are only sent when checks are executed.
 
 ## Scheduler
@@ -55,10 +54,6 @@ Use **Stop Scheduler** at any time to cancel all checks. The API server shuts do
 `scheduler.py` can be used to run health checks on a fixed interval. Register
 tests with `add_test(name, fn, interval)` and start them with `start_all()` or
 `start_test(name)`. Results are pushed to the UI server for display.
-
-The API server is responsible for sending Teams notifications when checks run,
-so the scheduler no longer posts directly to the webhook. This avoids duplicate
-messages when a scheduled test triggers the API server.
 
 The first check executes immediately after the scheduler starts. Subsequent
 runs occur after each configured interval.
