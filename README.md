@@ -6,10 +6,11 @@ This project provides a health monitoring API and UI. The API server runs health
 
 ## Configuration
 
-Copy `.env.example` to `.env` and fill in the values for your environment.
+The current application only implementes a login service check but has the capability to add more.
+When adding more services to be checked, required evironment variables should be included inside a `.env` file.
+To see how the application functions for the login service, copy `.env.example` to `.env` and fill in the values for your environment.
 
-
-### Environment Variables
+### Environment Variables for Login Service Check
 
 The application reads configuration from the `.env` file. See [`.env.example`](./.env.example) for reference. Required variables are:
 
