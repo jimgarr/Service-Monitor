@@ -58,10 +58,3 @@ tests with `add_test(name, fn, interval)` and start them with `start_all()` or
 The first check executes immediately after the scheduler starts. Subsequent
 runs occur after each configured interval.
 
-## Running Tests
-
-Install `pytest` if it is not already available and run the test suite from the repository root:
-
-```sh
-pytest
-```
