@@ -1,0 +1,248 @@
+<!doctype html>
+<html>
+<head>
+    <title>Service Monitor UI</title>
+    <link rel="icon" href="https://idea4industry.com/wp-content/uploads/cropped-IDEA-favicon-32x32.png">
+    <style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0em;
+        color: #ffffff;
+        background: url('https://wordpress.idea4industry.com/wp-content/uploads/AdobeStock_443793149-speed-blue-1536x922.jpg') no-repeat center center fixed;
+        background-size: cover;
+    }
+    table { border-collapse: collapse; }
+    th, td {
+        border: none;
+        padding: 0.5em;
+        color: inherit;
+    }
+    .page-header {
+        display: flex;
+        align-items: center;
+        gap: 35em;
+        background: url('https://wordpress.idea4industry.com/wp-content/uploads/AdobeStock_443793149-speed-blue-1536x922.jpg') no-repeat center center fixed;
+        background-size: cover;
+        padding: 2.7em;
+    }
+    .page-header h1 {
+        flex: 1;
+        margin: 0;
+        font-size: 3em;
+        color: white;
+    }
+    .page-header img {
+        height: 48px;
+        border: none;
+    }
+    .sections {
+        display: flex;
+        justify-content: space-around;
+        gap: 15em;
+        padding-left: 20em;
+        padding-right: 20em;
+        padding: 5em;
+        background: url('https://idea4industry.com/wp-content/uploads/AdobeStock_443793149-speed-white-1920x1152.png');
+        background-size: cover;
+    }
+    .section {
+        flex: 1;
+        border: 2px solid #ccc;
+        padding: 1em;
+        border-radius: 50px;
+        background: rgb(5, 32, 72);
+        color: #ffffff;
+    }
+    button {
+        border-color: #ff6900;
+        background-color: #ff6900;
+        color: #ffffff;
+        border-radius: 5px;
+    }
+    #results-container {
+        text-align: center;
+        margin-top: 2em;
+    }
+    #results-container table {
+        margin-left: auto;
+        margin-right: auto;
+        font-size: large;
+        background-color: white;
+        color: black;
+        border-collapse: collapse;
+        width: 80%;
+        border-radius: 50px;
+        table-layout: fixed; /* ensures equal column widths */
+    }
+    #results-container th:nth-child(1),
+    #results-container td:nth-child(1) {
+        width: 40%;
+        word-wrap: break-word; /* optional line-break */
+    }
+
+    #results-container th:nth-child(2),
+    #results-container td:nth-child(2) {
+        width: 15%;
+    }
+
+    #results-container th:nth-child(3),
+    #results-container td:nth-child(3) {
+        width: 45%;
+    }
+    .dual-table {
+        display: flex;
+        justify-content: center;
+        gap: 2em;
+    }
+    .label-table td {
+        text-align: left;
+    }
+    .control-table td {
+        text-align: left;
+    }
+    input {
+        color: #000000;
+        border: 1px solid #ccc;
+    }
+    .scheduler-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-left: 2em;
+        padding-right: 8em;
+    }
+    #single-check h2 {
+        margin-left: 1em;
+    }
+    h3 {
+        font-size: 2em;
+        margin-bottom: 1em;
+    }
+    </style>
+</head>
+<body>
+<header class="page-header">
+    <a href="https://idea4industry.com/">
+        <img src="https://wordpress.idea4industry.com/wp-content/uploads/IDEA-only-white-orange-01-768x200.png" alt="IDEA logo">
+    </a>
+    <h1>Service Monitor</h1>
+</header>
+<div class="sections">
+<div class="section" id="single-check">
+    <h2>Single Health Check</h2>
+    <form id="runOnceForm" method="post">
+        <div class="dual-table">
+            <table class="label-table">
+                <tr><td>Run Login Check:</td></tr>
+            </table>
+            <table class="control-table">
+                <tr><td><button formaction="/run_login_once" type="submit">Run Once</button></td></tr>
+            </table>
+        </div>
+    </form>
+</div>
+<div class="section" id="scheduler">
+    <form id="schedulerForm" method="post">
+        <div class="scheduler-header">
+            <h2>Scheduler</h2>
+            {% if scheduler_running %}
+            <button id="startStopButton" formaction="/stop_scheduler" onclick="stopPolling()" type="submit">Stop All Schedulers</button>
+            {% else %}
+            <button id="startStopButton" formaction="/start_all_schedulers" type="submit">Start All Schedulers</button>
+            {% endif %}
+        </div>
+        <div class="dual-table">
+            <table class="label-table">
+                <tr><td>Login Check Interval (seconds):</td></tr>
+            </table>
+            <table class="control-table">
+                <tr><td><input type="number" name="interval_login" min="1" step="1"></td></tr>
+            </table>
+        </div>
+    </form>
+</div>
+</div>
+<div id="results-container">
+{% if error %}
+<p style="color: red;">Error: {{ error }}</p>
+{% endif %}
+{% if results %}
+<h3>Results</h3>
+<table>
+    <tr><th>Service</th><th>Status</th><th>Message</th></tr>
+    {% for name, info in results.items() %}
+    <tr>
+        <td>{{ name }}</td>
+        <td>{{ 'UP' if info.healthy else 'DOWN' }}</td>
+        <td>{{ info.message }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p>No results.</p>
+{% endif %}
+</div>
+<script>
+function renderResults(data) {
+    const container = document.getElementById('results-container');
+    if (!container) { return; }
+    let html = '';
+    if (data.error) {
+        html += `<p style="color: red;">Error: ${data.error}</p>`;
+    }
+    if (data.results) {
+        html += '<h3>Results</h3><table><tr><th>Service</th><th>Status</th><th>Message</th></tr>';
+        for (const [name, info] of Object.entries(data.results)) {
+            html += `<tr><td>${name}</td><td>${info.healthy ? 'UP' : 'DOWN'}</td><td>${info.message}</td></tr>`;
+        }
+        html += '</table>';
+    } else {
+        html += '<p>No results.</p>';
+    }
+    container.innerHTML = html;
+}
+
+function fetchResults() {
+    fetch('/results').then(r => r.json()).then(renderResults);
+}
+
+{% if scheduler_running %}
+fetchResults();
+const poll = setInterval(fetchResults, {{ poll_interval_ms }});
+{% else %}
+const expectedInitial = {{ expected_initial }};
+function pollUntilComplete() {
+    fetch('/results').then(r => r.json()).then(data => {
+        if (data.results && Object.keys(data.results).length >= expectedInitial) {
+            renderResults(data);
+            clearInterval(initialPoll);
+        }
+    });
+}
+pollUntilComplete();
+const initialPoll = setInterval(pollUntilComplete, 5000);
+{% endif %}
+function stopPolling() {
+    if (typeof poll !== 'undefined') {
+        clearInterval(poll);
+    }
+    if (typeof initialPoll !== 'undefined') {
+        clearInterval(initialPoll);
+    }
+}
+
+document.getElementById('schedulerForm').addEventListener('submit', function(e) {
+    const action = document.getElementById('startStopButton').getAttribute('formaction');
+    if (action === '/start_all_schedulers') {
+        const loginInput = document.querySelector('input[name="interval_login"]');
+        const loginVal = loginInput.value;
+        if (!loginVal) {
+            e.preventDefault();
+            alert('Please enter an interval.');
+            return;
+        }
+    }
+});
+</script>
+</body>
+</html>
