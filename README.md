@@ -21,6 +21,17 @@ The application reads configuration from the `.env` file. See [`.env.example`](.
 - `LOGIN_PASSWORD` – password for the login check.
 - `WEBHOOK_URL` – Teams webhook used for notifications.
 
+## Adding Tests
+
+Services are defined using the `Service` dataclass, which stores a `name`, a `check_health` callable, and an optional `display_name` used in the UI. Each check lives in the `health_checks` package; for example, the login check is implemented in `health_checks/login_check.py`.
+
+To add a new test:
+
+1. Create a module under `health_checks/` with a function that returns `HealthResult`.
+2. Register the function by adding a `Service` to the `services` list in `api_server.py` for on-demand API checks or by calling `scheduler.add_test(name, fn, interval)` in `scheduler.py`.
+3. To expose the check in the UI, update `templates/index.html` with a **Run Once** button and interval input for your service, and mirror those fields in `ui_server.py` so the form posts the interval to `scheduler.add_test`.
+4. Add any required configuration to your `.env` file and restart the server or scheduler.
+
 ## Usage
 
 ### 1. Run the UI server
